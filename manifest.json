@@ -1,0 +1,11 @@
+{
+  "id": "obsidian-habit-systems",
+  "name": "Habit Systems",
+  "version": "0.0.1",
+  "minAppVersion": "0.15.0",
+  "description": "Habits as systems of your goals",
+  "author": "Brett Winterflood",
+  "authorUrl": "https://github.com/brettwinterflood",
+  "fundingUrl": "",
+  "isDesktopOnly": false
+}
