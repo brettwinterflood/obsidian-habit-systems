@@ -1,0 +1,11 @@
+- [ ] daily note [[Habits]] summary - remaining habits for the day, or pinned to a side bar -> just so i dont have to go to that note all the time but it's in my face to remind me all i have to do each new day
+- [ ] I want to fix the cell size in goals view
+- [ ] reading german / read german books via alias bug
+- [ ] goals view group summary - [[✦ GOALS]] not just grid but summary grid
+- [ ] should implement rank for habits with the goals view, so we can show which action has the highest ROI and sort via this
+- [ ] Add projects view along side goals and add to the [[✦ GOALS]] note
+- [ ] Refresh button should be on the left so we don’t obscure the current day
+- [ ] on mobile the last cell of the goal habits is made smaller
+- [ ] we should be the parent goal under the “current-goal” in smaller and less dark text, not at the bottom
+- [ ] It would be good to indicate when there are too many priority 1 objectives, when you should [[✦ FOCUS|focus on one thing at a time]]
+- [x] a line that starts with `- [ ]` should be shown as in progress orange color
