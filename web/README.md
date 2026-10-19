@@ -6,14 +6,17 @@ Daily-note markers match the plugin’s **read** rules in `src/data.ts`: lines c
 
 ## Run locally
 
+**Preferred (repo root — matches Jeppe’s `npm run start:web`):**
+
 ```bash
-cd web
-npm install
+cd web && npm install   # once
 export VAULT_DIR=/home/forge/0_MIND   # default
 export DAILY_NOTES_FOLDER=DIARY/      # default
 export PORT=8795                      # default
-npm start
+cd .. && npm run start:web
 ```
+
+Or from `web/` only: `npm start` (same server).
 
 Open `http://127.0.0.1:8795` (bind is **127.0.0.1 only** — put Tailscale/Traefik auth in front; do not expose publicly).
 
@@ -48,12 +51,12 @@ After=network.target
 [Service]
 Type=simple
 User=forge
-WorkingDirectory=/home/forge/projects/obsidian-habit-systems/web
+WorkingDirectory=/home/forge/projects/obsidian-habit-systems
 Environment=VAULT_DIR=/home/forge/0_MIND
 Environment=DAILY_NOTES_FOLDER=DIARY/
 Environment=PORT=8795
 Environment=HOST=127.0.0.1
-ExecStart=/usr/bin/npm start
+ExecStart=/usr/bin/npm run start:web
 Restart=on-failure
 
 [Install]

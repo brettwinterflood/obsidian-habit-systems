@@ -8,4 +8,12 @@ See `build.sh` and `manifest.json`. Default daily-notes folder in plugin setting
 
 ## Web app
 
-Run from `web/` with `VAULT_DIR` pointing at the vault. Details, env vars, tests, and a **systemd example** for `habits.i-o.im` → `127.0.0.1:8795` are in [web/README.md](web/README.md).
+From the repo root (Jeppe’s hosting entrypoint):
+
+```bash
+cd web && npm install   # once
+export VAULT_DIR=/home/forge/0_MIND
+npm run start:web       # 127.0.0.1:8795 by default
+```
+
+Details, env vars, tests, and a **systemd example** for `habits.i-o.im` → `127.0.0.1:8795` are in [web/README.md](web/README.md).
