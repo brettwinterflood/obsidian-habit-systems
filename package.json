@@ -1,0 +1,9 @@
+{
+  "name": "obsidian-habit-systems",
+  "private": true,
+  "description": "Obsidian habits plugin and private web check-in",
+  "scripts": {
+    "start:web": "cd web && node server.js",
+    "test:web": "cd web && npm test"
+  }
+}

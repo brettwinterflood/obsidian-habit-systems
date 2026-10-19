@@ -1,0 +1,15 @@
+{
+  "name": "habits-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/**/*.test.js"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.13",
+    "gray-matter": "^4.0.3",
+    "yaml": "^2.6.1"
+  }
+}

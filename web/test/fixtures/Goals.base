@@ -1,0 +1,197 @@
+filters:
+  and:
+    - '!file.basename.startsWith("DATABASES")'
+    - or:
+        - file.hasTag("goal")
+        - file.hasTag("goal-future")
+formulas:
+  focus_group: |-
+    if(note.focus_dates && note.focus_dates.length > 0,
+      note.focus_dates.sort().reverse()[0],
+      "0")
+  image: link(cover)
+  Untitled: image(image)
+  image 2: ""
+  name: rank+" ✧ "+file.name
+properties:
+  formula.focus_group:
+    displayName: Focus Group
+  formula.image:
+    displayName: cover image 1
+  formula.Untitled:
+    displayName: image
+views:
+  - type: kanban
+    name: Goals kanban
+    filters:
+      and:
+        - Status != "Finished"
+    groupBy:
+      property: Status
+      direction: ASC
+    groupOrder:
+      - Next Up
+      - In Progress
+      - Paused
+      - Future
+    image: formula.Untitled
+    columnWidth: 250
+    hideEmptyGroups: false
+    imageAspectRatio: 0.45
+  - type: cards
+    name: Goals
+    filters:
+      and:
+        - Status != "Finished"
+    order:
+      - formula.name
+    sort:
+      - property: rank
+        direction: ASC
+    image: note.image
+    cardSize: 250
+    imageAspectRatio: 1.5
+  - type: table
+    name: all
+    filters:
+      and:
+        - Status != "Finished"
+    groupBy:
+      property: formula.focus_group
+      direction: DESC
+    order:
+      - formula.Untitled
+      - file.name
+      - focus_dates
+      - description
+      - next-goals
+      - habits
+      - Status
+      - file.folder
+    sort:
+      - property: rank
+        direction: ASC
+    image: note.image
+    cardSize: 200
+    imageAspectRatio: 1.5
+    columnSize:
+      file.name: 342
+      note.description: 304
+      note.current-goal: 187
+    rowHeight: medium
+  - type: table
+    name: All-
+    filters:
+      and:
+        - Status != "Finished"
+    groupBy:
+      property: focus_dates
+      direction: ASC
+    order:
+      - file.name
+      - focus_dates
+      - description
+      - current-goal
+      - next-goals
+      - habits
+      - Status
+    sort:
+      - property: rank
+        direction: ASC
+    image: note.image
+    cardSize: 200
+    imageAspectRatio: 1.5
+    columnSize:
+      note.description: 238
+  - type: table
+    name: Table
+    filters:
+      and:
+        - Status != "Finished"
+    order:
+      - rank
+      - formula.Untitled
+      - file.name
+      - current-goal
+      - description
+      - affirmation
+      - next-goals
+      - habits
+      - related
+      - Status
+    sort:
+      - property: rank
+        direction: ASC
+      - property: habits
+        direction: ASC
+    columnSize:
+      note.rank: 78
+      formula.Untitled: 100
+      file.name: 160
+      note.current-goal: 184
+      note.description: 194
+      note.affirmation: 239
+      note.habits: 448
+    rowHeight: medium
+  - type: cards
+    name: ✅ Goals - achieved
+    filters:
+      and:
+        - Status == "Finished"
+    order:
+      - file.name
+      - description
+      - current-goal
+      - next-goals
+      - habits
+    sort:
+      - property: rank
+        direction: ASC
+    image: note.image
+    cardSize: 200
+    imageAspectRatio: 1.5
+  - type: habit-systems-goals
+    name: View
+    groupBy:
+      property: rank
+      direction: ASC
+  - type: cards
+    name: Goals_dashboard
+    filters:
+      and:
+        - Status != "Finished"
+    order:
+      - formula.name
+    sort:
+      - property: rank
+        direction: ASC
+    image: note.image
+    cardSize: 250
+    imageAspectRatio: 0.45
+  - type: base-flashcards
+    name: Flashcards
+    frontProperty: file.name
+    backProperty:
+    shuffle: false
+  - type: list
+    name: all list
+    filters:
+      and:
+        - Status != "Finished"
+    order:
+      - file.name
+      - description
+      - next-goals
+      - habits
+      - Status
+    sort:
+      - property: rank
+        direction: ASC
+    image: note.image
+    cardSize: 200
+    imageAspectRatio: 1.5
+    columnSize:
+      file.name: 342
+      note.description: 304
+      note.current-goal: 187
+    rowHeight: medium

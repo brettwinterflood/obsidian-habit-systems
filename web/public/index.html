@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f1419" />
+    <title>Habits</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="top">
+      <h1>Habits</h1>
+      <p class="sub" id="today-label"></p>
+      <nav class="tabs" role="tablist">
+        <button type="button" class="tab active" data-tab="checkin" role="tab">Today</button>
+        <button type="button" class="tab" data-tab="history" role="tab">History</button>
+        <button type="button" class="tab" data-tab="goals" role="tab">Goals</button>
+      </nav>
+    </header>
+    <main>
+      <section id="panel-checkin" class="panel active" role="tabpanel"></section>
+      <section id="panel-history" class="panel" role="tabpanel" hidden></section>
+      <section id="panel-goals" class="panel" role="tabpanel" hidden></section>
+    </main>
+    <p class="err" id="error" hidden></p>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
