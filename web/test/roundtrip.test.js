@@ -6,7 +6,11 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "../lib/config.js";
 import { getHabitData } from "../lib/habits-data.js";
-import { logHabitInDailyNote, membersForHabit } from "../lib/daily-note.js";
+import {
+  HabitLogConflictError,
+  logHabitInDailyNote,
+  membersForHabit,
+} from "../lib/daily-note.js";
 import { loadCheckInHabits } from "../lib/habits-md.js";
 import { listMarkdownNotes } from "../lib/vault-index.js";
 
@@ -60,7 +64,10 @@ describe("vault round-trip (fixture copy)", () => {
       config.habitsMdPath,
       notes
     );
-    const target = habits.includes("Gym") ? "Gym" : habits[0];
+    const target =
+      habits.find((h) => h === "Cold approach") ||
+      habits.find((h) => h !== "Gym") ||
+      habits[0];
     assert.ok(target, "need at least one habit from Habits.md");
 
     const date = "2025-06-12";
@@ -92,5 +99,31 @@ describe("vault round-trip (fixture copy)", () => {
     const cleared = await getHabitData(tempDir, config, mergedBlock, 1, date);
     const cell2 = cleared.data[0]?.find((c) => c.habit === target);
     assert.equal(cell2?.status, "neutral");
+  });
+
+  it("un-toggle on Gym keeps user diary line and throws conflict", async () => {
+    const notes = await listMarkdownNotes(tempDir);
+    const { mergedBlock } = await loadCheckInHabits(
+      tempDir,
+      config.habitsMdPath,
+      notes
+    );
+    const date = "2025-06-12";
+    const members = membersForHabit(mergedBlock, "Gym");
+    const before = await readFile(join(tempDir, "DIARY", "2025-06-12.md"), "utf8");
+    await assert.rejects(
+      () =>
+        logHabitInDailyNote(
+          tempDir,
+          config.dailyNotesFolder,
+          date,
+          "Gym",
+          members,
+          "neutral"
+        ),
+      (err) => err instanceof HabitLogConflictError
+    );
+    const after = await readFile(join(tempDir, "DIARY", "2025-06-12.md"), "utf8");
+    assert.equal(after, before);
   });
 });

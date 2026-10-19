@@ -6,6 +6,43 @@ import { wikiLinkPattern } from "./wiki.js";
 const TODO_MARKER = "\u{1F51C}"; // 🔜
 const SKIP_MARKER = "\u{1F4DD}"; // 📝
 
+export class HabitLogConflictError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "HabitLogConflictError";
+    this.statusCode = 409;
+  }
+}
+
+export function appWrittenSuccessLine(habitName) {
+  return `- [[${habitName}]]`;
+}
+
+export function appWrittenTodoLine(habitName) {
+  return `- ${TODO_MARKER} [[${habitName}]]`;
+}
+
+export function appWrittenFailLine(habitName) {
+  return `- failed [[${habitName}]]`;
+}
+
+/** Whole-line match for lines this app may append (not user prose). */
+export function isAppWrittenLine(line, habitName) {
+  const trimmed = line.trimEnd();
+  return (
+    trimmed === appWrittenSuccessLine(habitName) ||
+    trimmed === appWrittenTodoLine(habitName) ||
+    trimmed === appWrittenFailLine(habitName)
+  );
+}
+
+export function findAppWrittenLineIndex(lines, habitName) {
+  for (let i = 0; i < lines.length; i++) {
+    if (isAppWrittenLine(lines[i], habitName)) return i;
+  }
+  return -1;
+}
+
 export function dailyNotePaths(vaultDir, dailyNotesFolder, date) {
   return [
     join(vaultDir, dailyNotesFolder, `${date}.md`),
@@ -43,67 +80,70 @@ export function lineHabitStatus(line, memberNames) {
   return null;
 }
 
+function hasUserHabitLine(lines, memberNames, habitName) {
+  for (const line of lines) {
+    if (isAppWrittenLine(line, habitName)) continue;
+    if (lineHabitStatus(line, memberNames)) return true;
+  }
+  return false;
+}
+
+const CONFLICT_MSG =
+  "This habit is already recorded in your daily note text. Edit that line in Obsidian, or remove it there before un-logging here.";
+
 /**
- * Update or append a habit marker in a daily note.
- * Uses the same markers the plugin reads: [[habit]] links, 🔜 todo, ❌/fail fail.
- *
- * @param {string} content
- * @param {string} habitName - row habit (group name or individual)
- * @param {string[]} memberNames - wiki link targets to match
- * @param {'success'|'neutral'|'fail'|'todo'} targetStatus
+ * @returns {{ content: string, conflict?: { code: string, message: string } }}
  */
 export function applyHabitLogToContent(content, habitName, memberNames, targetStatus) {
   const lines = content === null ? [] : content.split("\n");
-  let matchIndex = -1;
-  let currentStatus = "neutral";
-
-  for (let i = 0; i < lines.length; i++) {
-    const st = lineHabitStatus(lines[i], memberNames);
-    if (st) {
-      matchIndex = i;
-      currentStatus = st;
-      break;
-    }
-  }
 
   if (targetStatus === "neutral") {
-    if (matchIndex >= 0) {
-      lines.splice(matchIndex, 1);
-      return joinLines(lines);
+    const appIdx = findAppWrittenLineIndex(lines, habitName);
+    if (appIdx >= 0) {
+      lines.splice(appIdx, 1);
+      return { content: joinLines(lines) };
     }
-    return content ?? "";
+    if (hasUserHabitLine(lines, memberNames, habitName)) {
+      return {
+        content: content ?? "",
+        conflict: { code: "HABIT_USER_LINE", message: CONFLICT_MSG },
+      };
+    }
+    return { content: content ?? "" };
   }
 
-  const link = `[[${habitName}]]`;
-
-  if (matchIndex >= 0) {
-    let line = lines[matchIndex];
-    if (targetStatus === "success") {
-      line = line.replaceAll(TODO_MARKER, "").replace(/\s+/g, " ").trimEnd();
-      if (!wikiLinkPattern(habitName).test(line) && memberNames.length === 1) {
-        /* keep line if it matched via alias member */
-      }
-    } else if (targetStatus === "todo") {
-      if (!line.includes(TODO_MARKER)) line = `${line} ${TODO_MARKER}`.trim();
-    } else if (targetStatus === "fail") {
-      line = line.replaceAll(TODO_MARKER, "").trimEnd();
-      if (!line.toLowerCase().includes("fail") && !line.includes("\u274c")) {
-        line = `${line} fail`;
-      }
+  if (targetStatus === "success") {
+    if (findAppWrittenLineIndex(lines, habitName) >= 0) {
+      return { content: content ?? "" };
     }
-    lines[matchIndex] = line;
-    return joinLines(lines);
+    const newLine = appWrittenSuccessLine(habitName);
+    return { content: appendLine(lines, newLine) };
+  }
+
+  const appIdx = findAppWrittenLineIndex(lines, habitName);
+  if (appIdx >= 0) {
+    let line = lines[appIdx];
+    if (targetStatus === "todo") {
+      lines[appIdx] = appWrittenTodoLine(habitName);
+    } else if (targetStatus === "fail") {
+      lines[appIdx] = appWrittenFailLine(habitName);
+    } else {
+      lines[appIdx] = line;
+    }
+    return { content: joinLines(lines) };
   }
 
   let newLine;
-  if (targetStatus === "success") newLine = `- ${link}`;
-  else if (targetStatus === "todo") newLine = `- ${TODO_MARKER} ${link}`;
-  else if (targetStatus === "fail") newLine = `- failed ${link}`;
-  else newLine = `- ${link}`;
+  if (targetStatus === "todo") newLine = appWrittenTodoLine(habitName);
+  else if (targetStatus === "fail") newLine = appWrittenFailLine(habitName);
+  else newLine = appWrittenSuccessLine(habitName);
 
+  return { content: appendLine(lines, newLine) };
+}
+
+function appendLine(lines, newLine) {
   if (lines.length === 0) return newLine;
-  const trimmed = lines[lines.length - 1];
-  if (trimmed === "") return [...lines, newLine].join("\n");
+  if (lines[lines.length - 1] === "") return [...lines, newLine].join("\n");
   return [...lines, "", newLine].join("\n");
 }
 
@@ -113,11 +153,6 @@ function joinLines(lines) {
 }
 
 /**
- * @param {string} vaultDir
- * @param {string} dailyNotesFolder
- * @param {string} date YYYY-MM-DD
- * @param {string} habitName
- * @param {string[]} memberNames
  * @param {'success'|'neutral'} targetStatus — check-in toggles success/neutral
  */
 export async function logHabitInDailyNote(
@@ -133,12 +168,16 @@ export async function logHabitInDailyNote(
     dailyNotesFolder,
     date
   );
-  const next = applyHabitLogToContent(
+  const result = applyHabitLogToContent(
     content,
     habitName,
     memberNames,
     targetStatus
   );
+  if (result.conflict) {
+    throw new HabitLogConflictError(result.conflict.message);
+  }
+  const next = result.content;
   await atomicWrite(path, next.endsWith("\n") || next === "" ? next : `${next}\n`);
   return { path, content: next };
 }

@@ -4,6 +4,7 @@ import { join, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadConfig } from "./lib/config.js";
 import { VaultService } from "./lib/vault-service.js";
+import { HabitLogConflictError } from "./lib/daily-note.js";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const publicDir = join(__dirname, "public");
@@ -53,8 +54,15 @@ async function handleApi(req, res, url) {
     if (!habit || typeof habit !== "string") {
       return sendJson(res, 400, { error: "habit required" });
     }
-    const result = await vault.toggleHabitToday(habit);
-    return sendJson(res, 200, result);
+    try {
+      const result = await vault.toggleHabitToday(habit);
+      return sendJson(res, 200, result);
+    } catch (err) {
+      if (err instanceof HabitLogConflictError) {
+        return sendJson(res, 409, { error: err.message });
+      }
+      throw err;
+    }
   }
   sendJson(res, 404, { error: "not found" });
 }

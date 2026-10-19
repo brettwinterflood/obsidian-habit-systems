@@ -2,7 +2,7 @@
 
 Mobile-first UI for logging habits against the same Obsidian vault files the [habits plugin](../src/) reads: `DATABASES/LIFE/Habits.md`, `Goals.base`, and daily notes under `DIARY/`.
 
-Daily-note markers match the plugin’s **read** rules in `src/data.ts`: lines containing `[[habit]]` wiki links; `🔜` = todo; `❌` or `fail` = fail; otherwise success. Lines with `📝` are ignored. Logging appends `- [[Habit]]` or updates an existing matching line (e.g. removes `🔜` when completing).
+Daily-note markers match the plugin’s **read** rules in `src/data.ts`: lines containing `[[habit]]` wiki links; `🔜` = todo; `❌` or `fail` = fail; otherwise success. Lines with `📝` are ignored. Logging **appends** an app-owned line `- [[Habit]]` (it does not edit your prose). Un-logging removes only that exact line; if the habit still appears in your own text, the API returns **409** and the file is unchanged.
 
 ## Run locally
 
